@@ -1,4 +1,4 @@
-Pytorch 2.0
+Pytorch
 TensorFlow
 gunicorn
 flask
