@@ -1,5 +1,4 @@
 Pytorch
-TensorFlow
 gunicorn
 flask
 transformers
