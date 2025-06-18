@@ -1,12 +1,11 @@
 from flask import Flask, render_template, request, jsonify
-import requests
+from transformers import pipeline, set_seed
+
+# Load model
+generator = pipeline('text-generation', model='gpt2')
+set_seed(42)
 
 app = Flask(__name__)
-
-API_URL = "https://api-inference.huggingface.co/models/gpt2"  # Or use other model
-API_TOKEN = "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"
-
-headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
 @app.route("/")
 def index():
@@ -14,22 +13,15 @@ def index():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    user_input = request.json.get("message")
-
-    payload = {
-        "inputs": user_input,
-        "options": {"wait_for_model": True}
-    }
-
     try:
-        response = requests.post(API_URL, headers=headers, json=payload)
-        generated_text = response.json()[0]["generated_text"]
-        reply = generated_text[len(user_input):].strip()
+        user_input = request.json["message"]
+        output = generator(user_input, max_length=100, num_return_sequences=1)
+        reply = output[0]["generated_text"].strip()
+        return jsonify({"reply": reply})
     except Exception as e:
-        reply = "Sorry, something went wrong."
-
-    return jsonify({"reply": reply})
+        print("Error:", e)
+        return jsonify({"reply": "Sorry, something went wrong."})
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=5000)
 
