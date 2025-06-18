@@ -3,8 +3,10 @@ import requests
 
 app = Flask(__name__)
 
-API_URL = "https://api-inference.huggingface.co/models/gpt2"  # You can switch to any free HF model
-HEADERS = {"Authorization": f"Bearer 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"}
+API_URL = "https://api-inference.huggingface.co/models/gpt2"  # Or use other model
+API_TOKEN = "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"
+
+headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
 @app.route("/")
 def index():
@@ -12,18 +14,22 @@ def index():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    user_message = request.json["message"]
-    data = {"inputs": user_message}
-    response = requests.post(API_URL, headers=HEADERS, json=data)
-    result = response.json()
-    
-    try:
-        bot_reply = result[0]["generated_text"]
-    except Exception:
-        bot_reply = "Sorry, something went wrong."
+    user_input = request.json.get("message")
 
-    return jsonify({"reply": bot_reply})
+    payload = {
+        "inputs": user_input,
+        "options": {"wait_for_model": True}
+    }
+
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload)
+        generated_text = response.json()[0]["generated_text"]
+        reply = generated_text[len(user_input):].strip()
+    except Exception as e:
+        reply = "Sorry, something went wrong."
+
+    return jsonify({"reply": reply})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
 
