@@ -1,7 +1,10 @@
 from flask import Flask, render_template, request, jsonify
 from transformers import pipeline
+import os
 
 app = Flask(__name__)
+os.environ["TRANSFORMERS_NO_TF"] = "1"  # Don't use TensorFlow
+os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Disable GPU
 
 # Load a lightweight model using only CPU
 chatbot = pipeline("text2text-generation", model="google/flan-t5-small")
