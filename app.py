@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 API_URL = "https://api-inference.huggingface.co/models/gpt2"
-headers = {"Authorization": f"Bearer {os.getenv('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')}"}
+headers = {"Authorization": f"Bearer {os.getenv('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')}"}
 
 @app.route("/")
 def home():
