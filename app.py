@@ -1,6 +1,16 @@
 from flask import Flask, render_template, request, jsonify
+from dotenv import load_dotenv
 import requests
 import os
+
+load_dotenv()  # Load .env variables
+
+app = Flask(__name__)
+
+HF_API_KEY = os.getenv("HF_API_KEY")
+API_URL = "https://api-inference.huggingface.co/models/gpt2"
+headers = {"Authorization": f"Bearer {HF_API_KEY}"}
+
 
 app = Flask(__name__)
 
