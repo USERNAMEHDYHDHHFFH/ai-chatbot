@@ -1,43 +1,59 @@
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
-import requests
 import os
+import requests
 
-load_dotenv()  # Load .env variables
+load_dotenv()
 
 app = Flask(__name__)
 
 HF_API_KEY = os.getenv("HF_API_KEY")
-API_URL = "https://api-inference.huggingface.co/models/gpt2"
-headers = {"Authorization": f"Bearer {HF_API_KEY}"}
-
-
-app = Flask(__name__)
-
-API_URL = "https://api-inference.huggingface.co/models/gpt2"
-headers = {"Authorization": f"Bearer {os.getenv('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')}"}
 
 @app.route("/")
-def home():
+def index():
     return render_template("index.html")
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    user_message = request.json.get("message")
+    user_message = request.json.get("message", "")
     if not user_message:
-        return jsonify({"reply": "No message received."})
+        return jsonify({"reply": "Please enter a message."})
 
-    payload = {"inputs": user_message}
+    headers = {
+        "Authorization": f"Bearer {HF_API_KEY}"
+    }
+
+    payload = {
+        "inputs": user_message
+    }
+
     try:
-        response = requests.post(API_URL, headers=headers, json=payload)
-        result = response.json()
-        if isinstance(result, list) and "generated_text" in result[0]:
-            return jsonify({"reply": result[0]["generated_text"]})
+        response = requests.post(
+            "https://api-inference.huggingface.co/models/gpt2",
+            headers=headers,
+            json=payload,
+            timeout=10
+        )
+
+        if response.status_code == 200:
+            # Get the generated text
+            output = response.json()
+            if isinstance(output, list):
+                bot_reply = output[0]["generated_text"].replace(user_message, "").strip()
+            else:
+                bot_reply = "Sorry, I didn’t get that."
         else:
-            return jsonify({"reply": "Sorry, something went wrong."})
+            bot_reply = "Model error: " + str(response.status_code)
+
     except Exception as e:
-        return jsonify({"reply": "API error."})
+        print("Error:", e)
+        bot_reply = "Server error."
+
+    return jsonify({"reply": bot_reply})
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
 
