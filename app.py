@@ -8,6 +8,7 @@ load_dotenv()
 app = Flask(__name__)
 
 HF_API_KEY = os.getenv("HF_API_KEY")
+HF_MODEL_URL = "https://api-inference.huggingface.co/models/gpt2"
 
 @app.route("/")
 def index():
