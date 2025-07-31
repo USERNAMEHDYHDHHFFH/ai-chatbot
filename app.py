@@ -3,8 +3,8 @@ from transformers import pipeline, set_seed
 
 app = Flask(__name__)
 
-# Load GPT-2 locally
-generator = pipeline("text-generation", model="gpt2")
+# ✅ Lightweight model (512Mi-friendly)
+generator = pipeline("text-generation", model="sshleifer/tiny-gpt2")
 set_seed(42)
 
 @app.route("/")
