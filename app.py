@@ -1,12 +1,11 @@
 from flask import Flask, render_template, request, jsonify
-import requests
-import os
+import requests, os
 from dotenv import load_dotenv
 
 load_dotenv()
 app = Flask(__name__)
 
-HF_MODEL_URL = "https://api-inference.huggingface.co/models/gpt2"
+HF_MODEL_URL = "https://api-inference.huggingface.co/models/mrm8488/t5-small-finetuned-common_gen"
 headers = {"Authorization": f"Bearer {os.getenv('HF_API_KEY')}"}
 
 @app.route("/")
@@ -24,16 +23,21 @@ def chat():
             HF_MODEL_URL,
             headers=headers,
             json={"inputs": user_message},
-            timeout=15
+            timeout=30
         )
-        # Debug logging
-        print("Status:", response.status_code, "Response:", response.text[:200])
 
         if response.status_code == 200:
             result = response.json()
-            bot_reply = result[0]["generated_text"].replace(user_message, "").strip()
+            if isinstance(result, list) and "generated_text" in result[0]:
+                bot_reply = result[0]["generated_text"].replace(user_message, "").strip()
+            else:
+                bot_reply = "Empty or invalid response."
+        elif response.status_code == 503:
+            bot_reply = "Model is warming up. Try again shortly."
+        elif response.status_code == 404:
+            bot_reply = "Model not found. Check URL or permissions."
         else:
-            bot_reply = f"Model error: {response.status_code}"
+            bot_reply = f"Model error: {response.status_code} - {response.text}"
 
     except Exception as e:
         print("API Exception:", e)
