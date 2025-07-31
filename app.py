@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 app = Flask(__name__)
 
-HF_MODEL_URL = "https://api-inference.huggingface.co/models/mrm8488/t5-small-finetuned-common_gen"
+HF_MODEL_URL = "https://api-inference.huggingface.co/models/gpt2"
 headers = {"Authorization": f"Bearer {os.getenv('HF_API_KEY')}"}
 
 @app.route("/")
