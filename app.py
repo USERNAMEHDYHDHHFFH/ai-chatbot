@@ -1,11 +1,8 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from transformers import pipeline, set_seed
 
 app = Flask(__name__)
-
-# ✅ Lightweight model (512Mi-friendly)
-generator = pipeline("text-generation", model="sshleifer/tiny-gpt2")
-set_seed(42)
+generator = None  # lazy load
 
 @app.route("/")
 def index():
@@ -13,15 +10,24 @@ def index():
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    global generator
+
     user_message = request.json.get("message", "")
     if not user_message:
         return jsonify({"reply": "Please enter a message."})
 
     try:
+        if generator is None:
+            print("⏳ Loading model...")
+            generator = pipeline("text-generation", model="sshleifer/tiny-gpt2", device=-1)  # CPU only
+            set_seed(42)
+            print("✅ Model loaded.")
+
         output = generator(user_message, max_length=60, num_return_sequences=1)
         bot_reply = output[0]["generated_text"].replace(user_message, "").strip()
+
     except Exception as e:
-        print("Local Model Error:", e)
+        print("❌ Error:", e)
         bot_reply = "Error generating reply."
 
     return jsonify({"reply": bot_reply})
